@@ -3,15 +3,25 @@ var debug = require('debug')('snitunnel:tunnel-mapping');
 var tunnelMappings = [];
 
 function TunnelMapping(params) {
-  _.extend(this, _.pick(params, ['domain', 'tunnel', 'networks']));
-  this.domainMatch = new RegExp(`^${this.domain}$`, 'i');
+  this.enabled = true;
+  this.name = null;
+  this.domain = null;
+  this.tunnel = null;
+  this.networks = null;
+  this.update(params);
 }
 
 TunnelMapping.prototype.asJSON = function() {
-  var json = _.pick(this, ['domain', 'tunnel', 'networks']);
+  var json = _.pick(this, ['name', 'domain', 'tunnel', 'networks', 'enabled']);
   json.id = tunnelMappings.indexOf(this);
   return json;
-}
+};
+
+TunnelMapping.prototype.update = function(params, cb) {
+  _.extend(this, _.pick(params, ['name', 'domain', 'tunnel', 'networks', 'enabled']));
+  this.domainMatch = new RegExp(`^${this.domain}$`, 'i');
+  _.isFunction(cb) && cb(null, this);
+};
 
 module.exports = {
   all: function(cb) {
@@ -24,7 +34,7 @@ module.exports = {
   findWhere: function(params, cb) {
     debug('findWhere(%j)', params);
     cb(null, tunnelMappings.find((map) => {
-      return map.domainMatch.test(params.serverName) && (map.networks.indexOf(params.clientAddress) !== -1);
+      return map.enabled && map.domainMatch.test(params.serverName) && (map.networks.indexOf(params.clientAddress) !== -1);
     }));
   },
   create: function(params, cb) {

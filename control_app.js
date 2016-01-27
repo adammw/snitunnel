@@ -16,6 +16,18 @@ app.delete('/api/mappings/:id', function(req, res) {
   });
 });
 
+// update
+app.post('/api/mappings/:id', function(req, res) {
+  TunnelMapping.find(req.params.id, function(err, map) {
+    if (err) { return res.status(422).json({ error: err }) };
+    if (!map) { return res.status(404).json({ error: 'Not Found' }) };
+    map.update(req.body, function(err, map) {
+      if (err) { return res.status(422).json({ error: err }) };
+      res.status(201).json({ mapping: map.asJSON() });
+    });
+  });
+});
+
 // create
 app.post('/api/mappings', function(req, res) {
   TunnelMapping.create(req.body, function(err, map) {
